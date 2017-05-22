@@ -30,6 +30,7 @@ dependencies {
 	compile("org.springframework.boot:spring-boot-starter-batch")
 	compile("org.springframework.boot:spring-boot-starter-cache")
 	compile("org.springframework.boot:spring-boot-starter-websocket")
+	compile("org.springframework.boot:spring-boot-starter-hateoas")
 	
 	compile("org.webjars:webjars-locator")
 	compile("org.webjars:sockjs-client:1.0.2")

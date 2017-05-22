@@ -1,6 +1,7 @@
 package mr.cell.incubator.springboottest.controller;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -11,6 +12,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.http.MockHttpOutputMessage;
@@ -27,12 +29,13 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = BookmarksApplication.class)
 @AutoConfigureMockMvc
 public class BookmarkRestControllerTest {
+	
+	private static final MediaType APPLICATION_HAL_JSON_UTF8 = new MediaType("application", "hal+json", StandardCharsets.UTF_8);
 	
 	@Autowired
 	private MockMvc mockMvc;
@@ -76,7 +79,7 @@ public class BookmarkRestControllerTest {
 		mockMvc.perform(
 				post("/dummy/bookmarks")
 						.content(json(new Bookmark()))
-						.contentType(APPLICATION_JSON_UTF8)
+						.contentType(APPLICATION_HAL_JSON_UTF8)
 		).andExpect(status().isNotFound());
 	}
 	
@@ -84,31 +87,31 @@ public class BookmarkRestControllerTest {
 	public void getSingleBookmark() throws Exception {
 		mockMvc.perform(get("/" + username + "/bookmarks/" + bookmarkList.get(0).getId()))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.id", is(this.bookmarkList.get(0).getId().intValue())))
-				.andExpect(jsonPath("$.uri", is(this.bookmarkList.get(0).getUri())))
-				.andExpect(jsonPath("$.description", is(this.bookmarkList.get(0).getDescription())));
+				.andExpect(content().contentType(APPLICATION_HAL_JSON_UTF8))
+				.andExpect(jsonPath("$.bookmark.id", is(this.bookmarkList.get(0).getId().intValue())))
+				.andExpect(jsonPath("$.bookmark.uri", is(this.bookmarkList.get(0).getUri())))
+				.andExpect(jsonPath("$.bookmark.description", is(this.bookmarkList.get(0).getDescription())));
 	}
 	
 	@Test
 	public void getBookmarks() throws Exception {
 		mockMvc.perform(get("/" + username + "/bookmarks"))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType(APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$", hasSize(2)))
-				.andExpect(jsonPath("$[0].id", is(bookmarkList.get(0).getId().intValue())))
-				.andExpect(jsonPath("$[0].uri", is(bookmarkList.get(0).getUri())))
-				.andExpect(jsonPath("$[0].description", is(bookmarkList.get(0).getDescription())))
-				.andExpect(jsonPath("$[1].id", is(bookmarkList.get(1).getId().intValue())))
-				.andExpect(jsonPath("$[1].uri", is(bookmarkList.get(1).getUri())))
-				.andExpect(jsonPath("$[1].description", is(bookmarkList.get(1).getDescription())));
+				.andExpect(content().contentType(APPLICATION_HAL_JSON_UTF8))
+				.andExpect(jsonPath("$._embedded.bookmarks", hasSize(2)))
+				.andExpect(jsonPath("$._embedded.bookmarks[0].bookmark.id", is(bookmarkList.get(0).getId().intValue())))
+				.andExpect(jsonPath("$._embedded.bookmarks[0].bookmark.uri", is(bookmarkList.get(0).getUri())))
+				.andExpect(jsonPath("$._embedded.bookmarks[0].bookmark.description", is(bookmarkList.get(0).getDescription())))
+				.andExpect(jsonPath("$._embedded.bookmarks[1].bookmark.id", is(bookmarkList.get(1).getId().intValue())))
+				.andExpect(jsonPath("$._embedded.bookmarks[1].bookmark.uri", is(bookmarkList.get(1).getUri())))
+				.andExpect(jsonPath("$._embedded.bookmarks[1].bookmark.description", is(bookmarkList.get(1).getDescription())));
 	}
 	
 	@Test
 	public void createBookmark() throws Exception {
 		mockMvc.perform(
 				post("/" + username + "/bookmarks")
-						.contentType(APPLICATION_JSON_UTF8)
+						.contentType(APPLICATION_HAL_JSON_UTF8)
 						.content(json(new Bookmark(account, "http://bookmark.com/3/test", "test description")))
 		).andExpect(status().isCreated())
 				.andExpect(header().string("location", notNullValue()));
@@ -116,7 +119,7 @@ public class BookmarkRestControllerTest {
 	
 	protected String json(Object o) throws IOException {
 		MockHttpOutputMessage message = new MockHttpOutputMessage();
-		mappingJackson2HttpMessageConverter.write(o, APPLICATION_JSON_UTF8, message);
+		mappingJackson2HttpMessageConverter.write(o, APPLICATION_HAL_JSON_UTF8, message);
 		return message.getBodyAsString();
 	}
 }

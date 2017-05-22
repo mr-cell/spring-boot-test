@@ -26,10 +26,10 @@ public class GithubLookupService {
 	public Future<GithubUser> findUser(String username) throws InterruptedException {
 		log.info("Looking up {}", username);
 		String url = GITHUB_USERS_API + username;
+		
 		GithubUser results = restTemplate.getForObject(url, GithubUser.class);
 		
 		Thread.sleep(1000L);
 		return new AsyncResult<GithubUser>(results);
 	}
-
 }
