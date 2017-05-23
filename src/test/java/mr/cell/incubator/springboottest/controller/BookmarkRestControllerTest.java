@@ -20,6 +20,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import mr.cell.incubator.springboottest.BookmarksApplication;
+import mr.cell.incubator.springboottest.OAuthHelper;
 import mr.cell.incubator.springboottest.domain.Account;
 import mr.cell.incubator.springboottest.domain.Bookmark;
 import mr.cell.incubator.springboottest.repository.AccountRepository;
@@ -39,6 +40,9 @@ public class BookmarkRestControllerTest {
 	
 	@Autowired
 	private MockMvc mockMvc;
+	
+	@Autowired
+	private OAuthHelper authHelper;
 	
 	private String username = "test";
 	
@@ -77,7 +81,8 @@ public class BookmarkRestControllerTest {
 	@Test
 	public void userNotFound() throws Exception {
 		mockMvc.perform(
-				post("/dummy/bookmarks")
+				post("/bookmarks")
+						.with(authHelper.addBearerToken("dummy", "ROLE_USER"))
 						.content(json(new Bookmark()))
 						.contentType(APPLICATION_HAL_JSON_UTF8)
 		).andExpect(status().isNotFound());
@@ -85,7 +90,9 @@ public class BookmarkRestControllerTest {
 	
 	@Test
 	public void getSingleBookmark() throws Exception {
-		mockMvc.perform(get("/" + username + "/bookmarks/" + bookmarkList.get(0).getId()))
+		mockMvc.perform(get("/bookmarks/" + bookmarkList.get(0).getId())
+						.with(authHelper.addBearerToken("test", "ROLE_USER"))
+				)
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(APPLICATION_HAL_JSON_UTF8))
 				.andExpect(jsonPath("$.bookmark.id", is(this.bookmarkList.get(0).getId().intValue())))
@@ -95,7 +102,9 @@ public class BookmarkRestControllerTest {
 	
 	@Test
 	public void getBookmarks() throws Exception {
-		mockMvc.perform(get("/" + username + "/bookmarks"))
+		mockMvc.perform(get("/bookmarks")
+						.with(authHelper.addBearerToken("test", "ROLE_USER"))
+				)
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(APPLICATION_HAL_JSON_UTF8))
 				.andExpect(jsonPath("$._embedded.bookmarks", hasSize(2)))
@@ -110,7 +119,8 @@ public class BookmarkRestControllerTest {
 	@Test
 	public void createBookmark() throws Exception {
 		mockMvc.perform(
-				post("/" + username + "/bookmarks")
+				post("/bookmarks")
+						.with(authHelper.addBearerToken("test", "ROLE_USER"))
 						.contentType(APPLICATION_HAL_JSON_UTF8)
 						.content(json(new Bookmark(account, "http://bookmark.com/3/test", "test description")))
 		).andExpect(status().isCreated())

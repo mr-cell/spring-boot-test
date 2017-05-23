@@ -4,13 +4,15 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-import mr.cell.incubator.springboottest.controller.FileUploadController;
+import mr.cell.incubator.springboottest.BookmarksApplication;
+import mr.cell.incubator.springboottest.OAuthHelper;
 import mr.cell.incubator.springboottest.storage.StorageFileNotFoundException;
 import mr.cell.incubator.springboottest.storage.StorageService;
 
@@ -24,11 +26,15 @@ import java.nio.file.Paths;
 import java.util.stream.Stream;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(FileUploadController.class)
+@SpringBootTest(classes = BookmarksApplication.class)
+@AutoConfigureMockMvc
 public class FileUploadControllerTest {
 
 	@Autowired 
 	private MockMvc mvc;
+	
+	@Autowired
+	private OAuthHelper authHelper;
 	
 	@MockBean
 	private StorageService storageService;
@@ -38,7 +44,9 @@ public class FileUploadControllerTest {
 		given(storageService.loadAll())
 				.willReturn(Stream.of(Paths.get("first.txt"), Paths.get("second.txt")));
 		
-		mvc.perform(get("/files"))
+		mvc.perform(get("/files")
+					.with(authHelper.addBearerToken("test", "ROLE_USER"))
+				)
 				.andExpect(status().isOk())
 				.andExpect(model().attribute("files", Matchers.contains("http://localhost/files/first.txt", "http://localhost/files/second.txt")));
 	}
@@ -46,7 +54,9 @@ public class FileUploadControllerTest {
 	@Test
 	public void shouldSaveUploadedFile() throws Exception {
 		MockMultipartFile multipartFile = new MockMultipartFile("file", "test.txt", "text/plain", "Test content".getBytes());
-		mvc.perform(fileUpload("/files").file(multipartFile))
+		mvc.perform(fileUpload("/files").file(multipartFile)
+					.with(authHelper.addBearerToken("test", "ROLE_USER"))
+				)
 				.andExpect(status().isFound())
 				.andExpect(header().string("Location", "/files"));
 		
@@ -58,7 +68,9 @@ public class FileUploadControllerTest {
 		given(storageService.loadAsResource("test.txt"))
 				.willThrow(StorageFileNotFoundException.class);
 		
-		mvc.perform(get("/files/test.txt"))
+		mvc.perform(get("/files/test.txt")
+					.with(authHelper.addBearerToken("test", "ROLE_USER"))
+				)
 				.andExpect(status().isNotFound());
 	}
 }

@@ -1,6 +1,7 @@
 package mr.cell.incubator.springboottest.controller;
 
 import java.net.URI;
+import java.security.Principal;
 import java.util.stream.Collectors;
 
 import org.springframework.hateoas.Link;
@@ -20,7 +21,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
-@RequestMapping("/{userId}/bookmarks")
+@RequestMapping("/bookmarks")
 public class BookmarkRestController {
 
 	private final BookmarkRepository bookmarks;
@@ -32,33 +33,34 @@ public class BookmarkRestController {
 	}
 	
 	@RequestMapping(method = GET)
-	public Resources<BookmarkResource> getBookmarks(@PathVariable String userId) {
-		validateUsername(userId);
+	public Resources<BookmarkResource> getBookmarks(Principal principal) {
+		validateUsername(principal);
 		
-		return new Resources<>(bookmarks.findByAccountUsername(userId)
+		return new Resources<>(bookmarks.findByAccountUsername(principal.getName())
 				.stream()
-				.map(BookmarkResource::new)
+				.map(bookmark -> new BookmarkResource(principal, bookmark))
 				.collect(Collectors.toList()));		
 	}
 	
 	@RequestMapping(method = POST)
-	public ResponseEntity<?> add(@PathVariable String userId, @RequestBody Bookmark payload) {
-		validateUsername(userId);
+	public ResponseEntity<?> add(Principal principal, @RequestBody Bookmark payload) {
+		validateUsername(principal);
 		
-		return accounts.findByUsername(userId).map(account -> {
+		return accounts.findByUsername(principal.getName()).map(account -> {
 			Bookmark bookmark = bookmarks.save(new Bookmark(account, payload.getUri(), payload.getDescription()));
-			Link selfRef = new BookmarkResource(bookmark).getLink("self");
+			Link selfRef = new BookmarkResource(principal, bookmark).getLink("self");
 			return ResponseEntity.created(URI.create(selfRef.getHref())).build();
 		}).orElse(ResponseEntity.noContent().build());
 	}
 	
 	@RequestMapping(method = GET, value = "/{bookmarkId}")
-	public BookmarkResource getBookmark(@PathVariable String userId, @PathVariable Long bookmarkId) {
-		validateUsername(userId);
-		return new BookmarkResource(bookmarks.findOne(bookmarkId));
+	public BookmarkResource getBookmark(Principal principal, @PathVariable Long bookmarkId) {
+		validateUsername(principal);
+		return new BookmarkResource(principal, bookmarks.findOne(bookmarkId));
 	}
 	
-	private void validateUsername(String username) {
+	private void validateUsername(Principal principal) {
+		String username = principal.getName();
 		accounts.findByUsername(username).orElseThrow(() -> new UserNotFoundException(username));
 	}
 }
