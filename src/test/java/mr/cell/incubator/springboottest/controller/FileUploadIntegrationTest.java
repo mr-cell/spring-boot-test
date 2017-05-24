@@ -26,7 +26,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 
-import mr.cell.incubator.springboottest.OAuthHelper;
 import mr.cell.incubator.springboottest.storage.StorageService;
 
 @RunWith(SpringRunner.class)
@@ -39,9 +38,6 @@ public class FileUploadIntegrationTest {
 	@MockBean
 	private StorageService storageService;
 	
-	@Autowired
-	private OAuthHelper authHelper;
-	
 	@LocalServerPort
 	private int port;
 	
@@ -50,8 +46,6 @@ public class FileUploadIntegrationTest {
 		ClassPathResource resource = new ClassPathResource("fileToUpload.txt", getClass());
 		
 		MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-		headers.add("Authorization", "Bearer " + authHelper.getAccessTokenValue("test", "ROLE_USER"));
-		
 		MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
 		params.add("file", resource);
 		
@@ -70,8 +64,6 @@ public class FileUploadIntegrationTest {
 		given(storageService.loadAsResource("fileToUpload.txt")).willReturn(resource);
 		
 		MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-		headers.add("Authorization", "Bearer " + authHelper.getAccessTokenValue("test", "ROLE_USER"));
-		
 		ResponseEntity<String> response = restTemplate.exchange("/files/{filename}", HttpMethod.GET, new HttpEntity<>(headers), String.class, "fileToUpload.txt");
 		
 		assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.OK);

@@ -6,16 +6,19 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
-import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 
+import mr.cell.incubator.springboottest.security.BookmarksUserDetailsService;
+
 @Configuration
-@EnableResourceServer
 @EnableAuthorizationServer
 public class OAuth2Configuration extends AuthorizationServerConfigurerAdapter {
 
 	private String applicationName = "bookmarks";
+	
+	@Autowired
+	private BookmarksUserDetailsService userDetailsService;
 	
 	@Autowired
 	AuthenticationManager authenticationManager;
@@ -28,6 +31,7 @@ public class OAuth2Configuration extends AuthorizationServerConfigurerAdapter {
 	@Override
 	public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
 		endpoints.authenticationManager(authenticationManager);
+		endpoints.userDetailsService(userDetailsService);
 	}
 	
 	@Override

@@ -11,7 +11,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import mr.cell.incubator.springboottest.BookmarksApplication;
-import mr.cell.incubator.springboottest.OAuthHelper;
 import mr.cell.incubator.springboottest.domain.Person;
 import mr.cell.incubator.springboottest.repository.PersonRepository;
 
@@ -35,9 +34,6 @@ public class PersonRestControllerTest {
 	@Autowired
 	private MockMvc mvc;
 	
-	@Autowired
-	private OAuthHelper authHelper;
-	
 	@MockBean
 	private PersonRepository persons;
 	
@@ -46,9 +42,7 @@ public class PersonRestControllerTest {
 		List<Person> personList = Arrays.asList(new Person(1L, "test1", 20), new Person(2L, "test2", 21));
 		given(persons.findAll()).willReturn(personList);
 		
-		mvc.perform(get("/persons")
-						.with(authHelper.addBearerToken("test", "ROLE_USER"))
-				)
+		mvc.perform(get("/persons"))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(APPLICATION_HAL_JSON_UTF8))
 				.andExpect(jsonPath("$._embedded.persons", hasSize(2)))
@@ -65,9 +59,7 @@ public class PersonRestControllerTest {
 		Person person = new Person(1L, "test1", 20);
 		given(persons.findByName("test1")).willReturn(Optional.of(person));
 		
-		mvc.perform(get("/persons/test1")
-				.with(authHelper.addBearerToken("test", "ROLE_USER"))
-			)
+		mvc.perform(get("/persons/test1"))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(APPLICATION_HAL_JSON_UTF8))
 			.andExpect(jsonPath("$.person.id", is(person.getId().intValue())))
@@ -79,9 +71,7 @@ public class PersonRestControllerTest {
 	public void getInvalidPerson() throws Exception {
 		given(persons.findByName("test1")).willReturn(Optional.empty());
 		
-		mvc.perform(get("/persons/test1")
-				.with(authHelper.addBearerToken("test", "ROLE_USER"))
-			)
+		mvc.perform(get("/persons/test1"))
 			.andExpect(status().isNotFound());
 	}
 

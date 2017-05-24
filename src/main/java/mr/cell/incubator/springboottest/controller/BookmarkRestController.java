@@ -38,7 +38,7 @@ public class BookmarkRestController {
 		
 		return new Resources<>(bookmarks.findByAccountUsername(principal.getName())
 				.stream()
-				.map(bookmark -> new BookmarkResource(principal, bookmark))
+				.map(bookmark -> new BookmarkResource(bookmark))
 				.collect(Collectors.toList()));		
 	}
 	
@@ -48,7 +48,7 @@ public class BookmarkRestController {
 		
 		return accounts.findByUsername(principal.getName()).map(account -> {
 			Bookmark bookmark = bookmarks.save(new Bookmark(account, payload.getUri(), payload.getDescription()));
-			Link selfRef = new BookmarkResource(principal, bookmark).getLink("self");
+			Link selfRef = new BookmarkResource(bookmark).getLink("self");
 			return ResponseEntity.created(URI.create(selfRef.getHref())).build();
 		}).orElse(ResponseEntity.noContent().build());
 	}
@@ -56,7 +56,7 @@ public class BookmarkRestController {
 	@RequestMapping(method = GET, value = "/{bookmarkId}")
 	public BookmarkResource getBookmark(Principal principal, @PathVariable Long bookmarkId) {
 		validateUsername(principal);
-		return new BookmarkResource(principal, bookmarks.findOne(bookmarkId));
+		return new BookmarkResource(bookmarks.findOne(bookmarkId));
 	}
 	
 	private void validateUsername(Principal principal) {
