@@ -56,7 +56,22 @@ public class BookmarkRestController {
 	@RequestMapping(method = GET, value = "/{bookmarkId}")
 	public BookmarkResource getBookmark(Principal principal, @PathVariable Long bookmarkId) {
 		validateUsername(principal);
-		return new BookmarkResource(bookmarks.findOne(bookmarkId));
+		Bookmark bookmark = retrieveBookmark(principal, bookmarkId);
+		return new BookmarkResource(bookmark);
+	}
+	
+	private Bookmark retrieveBookmark(Principal principal, Long bookmarkId) {
+		Bookmark bookmark = bookmarks.findOne(bookmarkId);
+		if(bookmark == null) {
+			throw new BookmarkNotFoundException(bookmarkId);
+		}
+		
+		String username = principal.getName();
+		if(!username.equals(bookmark.getAccount().getUsername())) {
+			throw new IllegalBookmarkAccessException(bookmark.getId());
+		}
+		
+		return bookmark;
 	}
 	
 	private void validateUsername(Principal principal) {
