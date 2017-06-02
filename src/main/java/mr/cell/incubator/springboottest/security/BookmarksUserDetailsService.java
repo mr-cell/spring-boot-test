@@ -21,7 +21,7 @@ public class BookmarksUserDetailsService implements UserDetailsService {
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		return accounts.findByUsername(username)
-				.map(user -> new User(user.getUsername(), user.getPassword(), AuthorityUtils.createAuthorityList("USER", "write")))
+				.map(user -> new User(user.getUsername(), user.getPassword(), AuthorityUtils.createAuthorityList("USER", "ACTUATOR", "write")))
 				.orElseThrow(() -> new UsernameNotFoundException("Could not find the user '" + username + "'") );
 	}
 

@@ -39,7 +39,7 @@ public class OAuth2Configuration extends AuthorizationServerConfigurerAdapter {
 		clients.inMemory()
 				.withClient("android-" + applicationName)
 				.authorizedGrantTypes("password", "authorization_code", "refresh_token")
-				.authorities("ROLE_USER")
+				.authorities("ROLE_USER", "ROLE_ACTUATOR")
 				.scopes("write")
 				.resourceIds(applicationName)
 				.secret("123456");

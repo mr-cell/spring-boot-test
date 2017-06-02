@@ -13,6 +13,7 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
 		http.antMatcher("/**").authorizeRequests()
+				.antMatchers("/bookmarks**").authenticated()
 				.antMatchers("/*", "/files/**", "/inputForm/**", "/persons/**", "/websocket/**").permitAll()
 				.anyRequest().authenticated();
 	}
